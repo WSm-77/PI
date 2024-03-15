@@ -78,7 +78,7 @@ void print_deck(int deck[], int topCardIndex, int lastCardIndex, int deckSize){
 		topCardIndex++;
 		topCardIndex %= NUMBER_OF_CARDS;
 	}
-	printf("\n");
+	// printf("\n");
 }
 
 void game(int n, int player_A[], int player_B[], int max_conflicts, int simplified_mode) {
@@ -114,17 +114,16 @@ void game(int n, int player_A[], int player_B[], int max_conflicts, int simplifi
 
 		int verdict = conflict_verdict(player_A[cardOnTableIndexA], player_B[cardOnTableIndexB], simplified_mode);
 
+		// printf("Deck A: ");
+		// print_deck(player_A, topCardIndexA, lastCardIndexA, deckSizeA);
+		// printf("Deck B: ");
+		// print_deck(player_B, topCardIndexB, lastCardIndexB, deckSizeB);
+		// printf("\n\n");
 
-		printf("Deck A: ");
-		print_deck(player_A, topCardIndexA, lastCardIndexA, deckSizeA);
-		printf("Deck B: ");
-		print_deck(player_B, topCardIndexB, lastCardIndexB, deckSizeB);
-		printf("\n\n");
-
-		printf("conflict number: %d\n", conflictsCnt);
-		printf("card A: %d, card B: %d\n", player_A[cardOnTableIndexA], player_B[cardOnTableIndexB]);
-		printf("strength A: %d, strength B: %d\tverdict: %d\n", card_strength(player_A[cardOnTableIndexA]), 
-			card_strength(player_B[cardOnTableIndexB]), verdict);
+		// printf("conflict number: %d\n", conflictsCnt);
+		// printf("card A: %d, card B: %d\n", player_A[cardOnTableIndexA], player_B[cardOnTableIndexB]);
+		// printf("strength A: %d, strength B: %d\tverdict: %d\n", card_strength(player_A[cardOnTableIndexA]), 
+		// 	card_strength(player_B[cardOnTableIndexB]), verdict);
 		
 		switch (verdict){
 			case PLAYER_A_WINS:
@@ -165,32 +164,23 @@ void game(int n, int player_A[], int player_B[], int max_conflicts, int simplifi
 		}
 	}
 
+	printf("%d ", gameResult);
 	switch (gameResult)
 	{
 		case GAME_NOT_FINISHED:
 		case LAST_CONFLICT_WITHOUT_VERDICT:
-			printf("%d\n", gameResult);
-			printf("%d\n", deckSizeA);
-			printf("%d\n", deckSizeB);
+			printf("%d ", deckSizeA);
+			printf("%d", deckSizeB);
 
 		break;
 
 		case PLAYER_A_VICTORY:
-			printf("2\n");
-			printf("%d\n", conflictsCnt);
+			printf("%d", conflictsCnt);
 		break;
 
 		case PLAYER_B_VICTORY:
-			{
-				printf("3\n");
-				// int currentCardIndex = topCardIndexB;
-				// for (int i = 0; i < deckSizeB; i++){
-				// 	printf("%d ", player_B[currentCardIndex]);
-				// 	currentCardIndex = (currentCardIndex + 1) % NUMBER_OF_CARDS;
-				// }
-				// printf("\n");
-				print_deck(player_B, topCardIndexB, lastCardIndexB, deckSizeB);
-			}
+			printf("\n");
+			print_deck(player_B, topCardIndexB, lastCardIndexB, deckSizeB);
 		break;
 		
 		default:
@@ -237,15 +227,9 @@ int main(void) {
 	int max_conflicts;
 	int simplified_mode;
 	int seed;
-	// scanf("%d", &seed);
-	// scanf("%d", &simplified_mode);
-	// scanf("%d", &max_conflicts);
-
-	// usunac
-
-	seed = 10444;
-	simplified_mode = 0;
-	max_conflicts = 100;
+	scanf("%d", &seed);
+	scanf("%d", &simplified_mode);
+	scanf("%d", &max_conflicts);
 
 	for(int i = 0; i < NUMBER_OF_CARDS; i++) deck[i] = i;
 	srand((unsigned) seed);
