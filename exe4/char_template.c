@@ -14,6 +14,8 @@
 #define IN_LINE_COMMENT 1
 #define IN_BLOCK_COMMENT 2
 
+#define TEST 0
+
 int count[MAX_BIGRAMS] = { 0 };
 
 // sort indices according to their respective counts.
@@ -128,35 +130,100 @@ void bigram_count(int bigram_no, int bigram[]) {
 	bigram[2] = bigramsCnt[indexes[bigram_no - 1]];
 }
 
+void add_to_output(char *string, char output[], int *outputSize){
+	int i = 0;
+	while (string[i] != '\0'){
+		output[(*outputSize)++] = string[i];
+		i++;
+	}
+}
+
 void find_comments(int *line_comment_counter, int *block_comment_counter) {
-	int isLineComment = 0;
 	int isBlockComment = 0;
+	int isLineComment = 0;
+	int isInDoubleQuotes = 0;
+	int isInSingleQuotes = 0;
+
 	int ch;
-	int prevch = 0;
+	int prevch = ' ';
+	int blockCommentCharcnt = 0;
+
+	char output[1024*8] = {0};
+	int outputSize = 0;
+
 	while ((ch = fgetc(stdin)) != EOF){
-		if ('\n' == ch){
+		if (TEST && ch != '\n'){
+			output[outputSize++] = ch;
+		}
+
+		if (isBlockComment){
+			blockCommentCharcnt++;
+			if (blockCommentCharcnt > 4){
+				blockCommentCharcnt = 4;
+			}
+		}
+
+		if (ch == '\n')
+		{
+			if (isLineComment){
+				if(TEST){
+					char str[] = "(LineCommentEnd)";
+					add_to_output(str, output, &outputSize);
+				}
+			}
+			if (TEST){
+				output[outputSize++] = ch;
+			}
 			isLineComment = 0;
 		}
 
-		if (isBlockComment && ('*' == prevch) && ('/' == ch)){
+		if (isBlockComment && blockCommentCharcnt > 3 && prevch == '*' && ch == '/'){
+			if(TEST){
+				char str[] = "(BlockCommentEnd)";
+				add_to_output(str, output, &outputSize);
+			}
 			isBlockComment = 0;
+			blockCommentCharcnt = 0;
 		}
-		else if ('/' == prevch && '/' == ch){
-			if (!(isBlockComment || isLineComment)){
-				(*line_comment_counter)++;
-				isLineComment = 1;
+		else if (prevch == '/' && ch == '*' && !(isInDoubleQuotes || isInSingleQuotes || isLineComment || isBlockComment)){
+			if(TEST){
+				char str[] = "(BlockCommentStart)";
+				add_to_output(str, output, &outputSize);
 			}
-
+			(*block_comment_counter)++;
+			isBlockComment = 1;
+			blockCommentCharcnt = 2;
 		}
-		else if ('/' == prevch && '*' == ch)
-		{
-			if (!(isBlockComment || isLineComment)){
-				(*block_comment_counter)++;
-				isBlockComment = 1;
+		else if (prevch == '/' && ch == '/' && !(isInDoubleQuotes || isInSingleQuotes || isLineComment || isBlockComment)){
+			if(TEST){
+				char str[] = "(LineComment)";
+				add_to_output(str, output, &outputSize);
 			}
+			isLineComment = 1;
+			(*line_comment_counter)++;
 		}
+		else if (ch == '"' && prevch != '\\' && !(isBlockComment || isLineComment)){
+			if(TEST){
+				char str[] = "(DQuotes)";
+				add_to_output(str, output, &outputSize);
+			}
+			isInDoubleQuotes = !(isInDoubleQuotes);
+		}
+		else if (ch == '\'' && prevch != '\\' && !(isBlockComment || isLineComment)){
+			if(TEST){
+				char str[] = "(SQuotes)";
+				add_to_output(str, output, &outputSize);
+			}
+			isInSingleQuotes = !(isInSingleQuotes);
+		}	
 
 		prevch = ch;
+	}
+
+	if (TEST){
+		for (int i = 0; i < outputSize; i++){
+			printf("%c", output[i]);
+		}
 	}
 }
 
