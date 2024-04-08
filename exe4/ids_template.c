@@ -11,7 +11,7 @@
 #define MAX_ID_LEN 64
 #define MAX_IDS 1024
 
-#define TEST 1
+#define TEST 0
 
 int index_cmp(const void*, const void*);
 int cmp(const void*, const void*);
@@ -82,6 +82,7 @@ int find_idents() {
 	int isLineComment = 0;
 	int isInDoubleQuotes = 0;
 	int isInSingleQuotes = 0;
+	int isEscaped = 0;
 
 	char currentString[MAX_ID_LEN] = {0};
 	int mightBeIdentifier = 0;
@@ -91,12 +92,31 @@ int find_idents() {
 	int blockCommentCharcnt = 0;
 
 	int identifiersCnt = 0;
-	char output[1024*8] = {0};
+	char output[1024*80] = {0};
 	int outputSize = 0;
 
 	while ((ch = fgetc(stdin)) != EOF){
 		if (TEST && ch != '\n'){
 			output[outputSize++] = ch;
+		}
+
+		if (ch == '\\' && !(isEscaped)){
+			if(TEST){
+				char str[] = "(Backslash)";
+				add_to_output(str, output, &outputSize);
+			}
+			prevch = '\\';
+			isEscaped = 1;
+			if ((ch = fgetc(stdin) == EOF)){
+				break;
+			}
+			if (TEST && ch != '\n'){
+				output[outputSize++] = ch;
+			}
+
+		}
+		else{
+			isEscaped = 0;
 		}
 
 		if (isBlockComment){
@@ -143,14 +163,14 @@ int find_idents() {
 				add_to_output(str, output, &outputSize);
 			}
 		}
-		else if (ch == '"' && prevch != '\\' && !(isBlockComment || isLineComment)){
+		else if (ch == '"' && !(isBlockComment || isLineComment || isInSingleQuotes || isEscaped)){
 			if(TEST){
 				char str[] = "(DQuotes)";
 				add_to_output(str, output, &outputSize);
 			}
 			isInDoubleQuotes = !(isInDoubleQuotes);
 		}
-		else if (ch == '\'' && prevch != '\\' && !(isBlockComment || isLineComment)){
+		else if (ch == '\'' && !(isBlockComment || isLineComment || isInDoubleQuotes || isEscaped)){
 			if(TEST){
 				char str[] = "(SQuotes)";
 				add_to_output(str, output, &outputSize);
@@ -179,7 +199,7 @@ int find_idents() {
 					mightBeIdentifier = 0;
 					currentStringIndex = 0;
 				}
-				else if (is_white_space(prevch) && is_letter(ch)){
+				else if (!(is_valid_char(prevch)) && is_letter(ch)){
 					currentString[currentStringIndex++] = ch;
 					mightBeIdentifier = 1;
 				}
@@ -196,6 +216,16 @@ int find_idents() {
 	if (TEST){
 		for (int i = 0; i < outputSize; i++){
 			printf("%c", output[i]);
+		}
+	}
+	if (TEST){
+		for (int i = 0; i < identifiersCnt; i++){
+			int j = 0;
+			while (identifiers[i][j] != '\0'){
+				printf("%c", identifiers[i][j]);
+				j++;
+			}
+			printf("\n");
 		}
 	}
 
