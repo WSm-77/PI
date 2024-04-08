@@ -139,6 +139,7 @@ void add_to_output(char *string, char output[], int *outputSize){
 }
 
 void find_comments(int *line_comment_counter, int *block_comment_counter) {
+	*line_comment_counter = *block_comment_counter = 0;
 	int isBlockComment = 0;
 	int isLineComment = 0;
 	int isInDoubleQuotes = 0;
