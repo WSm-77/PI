@@ -1,0 +1,4 @@
+exe*/exec
+*.sh
+*.txt
+.vscode

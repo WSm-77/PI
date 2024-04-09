@@ -7,17 +7,6 @@ enum state { OK = 0, UNDERFLOW = -1, OVERFLOW = -2 };
 int stack[STACK_SIZE];
 int top = 0;
 
-void queue_print(void);
-
-int stack_top_value()
-{
-	if (top == 0){
-		return 0;
-	}
-	
-	return stack[top - 1];
-}
-
 int stack_push(int x) {
 	if( top >= STACK_SIZE){
 		return OVERFLOW;
@@ -52,15 +41,6 @@ int stack_state(void) {
 int queue[QUEUE_SIZE];
 int in = 0, curr_nr = 0;
 
-int out_of_queue(){
-	if (in == 0){
-		return 0;
-	}
-
-	int remaining = curr_nr - queue[in - 1];
-	return remaining;
-}
-
 int queue_push(int in_nr) { // in_nr clients try to enter the queue
 	int result = OK;
 	int queueIndex = in;
@@ -77,7 +57,6 @@ int queue_push(int in_nr) { // in_nr clients try to enter the queue
 		in_nr--;
 	}
 	in = queueIndex;
-	// queue_print();
 	return result;
 }
 
@@ -86,8 +65,6 @@ int queue_pop(int out_nr) { // out_nr clients leaves the queue
 		in = 0;
 		return UNDERFLOW;
 	}
-	
-	// printf("in1: %d\n", in);
 
 	int prevIndex = out_nr;
 	int i = 0;
@@ -95,11 +72,9 @@ int queue_pop(int out_nr) { // out_nr clients leaves the queue
 
 	while (prevIndex < QUEUE_SIZE){
 		queue[i] = queue[prevIndex];
-		// in++;
 		i++;
 		prevIndex++;
 	}
-	// printf("in2: %d\n", in);
 
 	return in;
 }
@@ -155,7 +130,6 @@ int cbuff_state(void) {
 
 void cbuff_print(void) {
 	int index = out;
-	// printf("cubuff: ");
 	for (int i = 0; i < len; i++){
 		printf("%d ", cbuff[index]);
 		index = (index + 1) % CBUFF_SIZE;
@@ -182,7 +156,6 @@ int main(void) {
 				scanf("%d", &n);
 				if (n > 0) {
 					if ((answer = queue_push(n)) < 0) printf("%d ", answer);
-					// if ((answer = queue_push(n)) < 0) printf("push: %d\n", answer);
 				} else if (n < 0) {
 					if ((answer = queue_pop(-n)) < 0) printf("%d ", answer);
 				} else {
