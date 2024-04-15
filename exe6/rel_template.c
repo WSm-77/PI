@@ -50,8 +50,13 @@ int composition (pair *rel_1, int n1, pair *rel_2, int n2, pair *rel_3);
 
 void add_ascending(int tab[], int *lastElemIdx, int elem){
 	int i = 0;
-	while (tab[i] < elem){
-		i++;
+	while (i < *lastElemIdx){
+		if (tab[i] < elem){
+			i++;
+		}
+		else{
+			break;
+		}
 	}
 	
 	if (elem != tab[i]){
@@ -272,13 +277,17 @@ my_bool is_total_order(pair *tab, int n) {
 }
 
 int find_max_elements(pair *tab, int n, int *max_elements) { // tab - partial order
+	#if TEST
+		printf("find_max_elements:\n");
+	#endif
+
 	int domain[MAX_REL_SIZE];
 	int domainSize = get_domain(tab, n, domain);
 
 	int maxElemCnt = 0;
 	
 	for (int i = 0; i < domainSize; i++){
-		int candidate = tab[i].second;
+		int candidate = domain[i];
 
 		my_bool isMaxElem = true;
 
@@ -302,39 +311,57 @@ int find_max_elements(pair *tab, int n, int *max_elements) { // tab - partial or
 }
 
 int find_min_elements(pair *tab, int n, int *min_elements) { // tab - strong partial order
-	return 0;
+	#if TEST
+		printf("find_min_elements:\n");
+	#endif
+
+	int domain[MAX_REL_SIZE];
+	int domainSize = get_domain(tab, n, domain);
+
+	int minElemCnt = 0;
+	
+	for (int i = 0; i < domainSize; i++){
+		int candidate = domain[i];
+
+		my_bool isMinElem = true;
+
+		for (int j = 0; j < n; j++){
+			if (tab[j].second != candidate){
+				continue;
+			}
+
+			if (!(tab[j].first == tab[j].second)){
+				isMinElem = false;
+			}
+
+		}
+
+		if (isMinElem){
+			add_ascending(min_elements, &minElemCnt, candidate);
+		}
+	}
+
+	return minElemCnt;
 }
 
 int get_domain(pair *tab, int n, int *domain) { 
+	// #if TEST
+	// 	printf("get_domain:\n");
+	// 	printf("recived tab:\n");
+	// 	for (int i = 0; i < n; i++){
+	// 		printf("(%d, %d) ", tab[i].first, tab[i].second);
+	// 	}
+	// 	printf("\n");
+	// #endif
+
 	int domainSize = 0;
 	for (int i = 0; i < n; i++){
-		// int x = tab[i].first;
-		// int y = tab[i].second;
-		// my_bool inDomainX = false;
-		// my_bool inDomainY = false;
-
-		// for (int j = 0; j < domainSize; j++){
-		// 	if (x == domain[j]){
-		// 		inDomainX = true;
-		// 	}
-		// 	else if (y == domain[j])
-		// 		inDomainY = true;
-		// }
-
-		// if ( ! (inDomainX)){
-		// 	add_ascending(domain, &domainSize, x);
-		// }
-
-		// if (x != y && !(inDomainY)){
-		// 	add_ascending(domain, &domainSize, y);
-		// }
-
 		add_ascending(domain, &domainSize, tab[i].first);
 		add_ascending(domain, &domainSize, tab[i].second);
 	}
 
 	#if TEST
-		printf("domian: ");
+		printf("domain: ");
 		for (int i = 0; i < domainSize; i++){
 			printf("%d ", domain[i]);
 		}
