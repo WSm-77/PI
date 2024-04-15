@@ -7,7 +7,7 @@
 #define true 1
 #define false 0
 
-#define TEST 1
+#define TEST 0
 
 typedef int my_bool;
 
@@ -48,18 +48,33 @@ my_bool is_connected(pair *tab, int n);
 
 int composition (pair *rel_1, int n1, pair *rel_2, int n2, pair *rel_3);
 
-void add_ascending(int tab[], int *lastElemIdx, int elem){
-	int i = 0;
-	while (i < *lastElemIdx){
-		if (tab[i] < elem){
-			i++;
+int binary_insert(int tab[], int end, int toFind){
+	int beg = 0;
+	while (beg <= end){
+		int mid = (end + beg) / 2;
+		if (tab[mid] < toFind){
+			beg = mid + 1;
 		}
 		else{
-			break;
+			end = mid - 1;
 		}
 	}
-	
-	if (elem != tab[i]){
+
+	return beg;
+}
+
+void add_ascending(int tab[], int *lastElemIdx, int elem){
+	if (*lastElemIdx == 0){
+		tab[(*lastElemIdx)++] = elem;
+		return;
+	}
+
+	int i = binary_insert(tab, *lastElemIdx, elem);
+
+	if (i > *lastElemIdx){
+		tab[(*lastElemIdx)++] = elem;
+	}
+	else if (elem != tab[i]){
 		while (i < *lastElemIdx){
 			int tmp = tab[i];
 			tab[i] = elem;
@@ -109,7 +124,6 @@ int read_relation(pair *relation) {
 	}
 
 	return lastElem;
-	// return n;
 }
 
 void print_int_array(int *array, int n) {
@@ -345,15 +359,6 @@ int find_min_elements(pair *tab, int n, int *min_elements) { // tab - strong par
 }
 
 int get_domain(pair *tab, int n, int *domain) { 
-	// #if TEST
-	// 	printf("get_domain:\n");
-	// 	printf("recived tab:\n");
-	// 	for (int i = 0; i < n; i++){
-	// 		printf("(%d, %d) ", tab[i].first, tab[i].second);
-	// 	}
-	// 	printf("\n");
-	// #endif
-
 	int domainSize = 0;
 	for (int i = 0; i < n; i++){
 		add_ascending(domain, &domainSize, tab[i].first);
@@ -406,7 +411,33 @@ my_bool is_connected(pair *tab, int n) {
 // Case 3:
 
 // x(S o R)z iff exists y: xRy and ySz
-int composition (pair *rel_1, int n1, pair *rel_2, int n2, pair *rel_3) { }
+int composition (pair *rel_1, int n1, pair *rel_2, int n2, pair *rel_3) {
+	int relSize = 0;
+
+	for (int i = 0; i < n1; i++){
+		for (int j = 0; j < n2; j++){
+			if (rel_1[i].second != rel_2[j].first){
+				continue;
+			}
+
+			pair newPair = {rel_1[i].first, rel_2[j].second};
+			my_bool isUnique = true;
+
+			for(int k = 0; k < relSize; k++){
+				if (newPair.first == rel_3[k].first && newPair.second == rel_3[k].second){
+					isUnique = false;
+					break;
+				}
+			}
+
+			if (isUnique){
+				rel_3[relSize++] = newPair;
+			}
+		}
+	}
+
+	return relSize;
+ }
 
 int main(void) {
 	int to_do;
