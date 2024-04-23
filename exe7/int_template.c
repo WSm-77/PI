@@ -30,59 +30,63 @@ double interval_size(double beg, double end, int n){
 	return (end - beg) / n;
 }
 
-double quad_rect(Func1vFp fun, double a, double b, double c, double dx, int n){
-	double integral = 0.0;
-
-	for(int i = 0; i < n; i++){
-		integral += fun(c + i*dx);
-	}
-
-	return dx * integral;
-}
-
-// rectangle rule, leftpoint
 double quad_rect_left(Func1vFp f1, double a, double b, int n) {
-	double dx = interval_size(a, b, n);
-	return quad_rect(f1, a, b, a, dx, n);
+    double dx = (b - a)/(double)n;
+    double integral = 0;
+
+    for(int i = 0; i < n; i++){
+        integral += dx*f1(a + i*dx);
+    }
+
+    return integral;
 }
 
-// rectangle rule, rightpoint
 double quad_rect_right(Func1vFp f1, double a, double b, int n) {
-	double dx = interval_size(a, b, n);
-	return quad_rect(f1, a, b, dx, dx, n);
+    double dx = (b - a)/(double)n;
+    double integral = 0;
+
+    for(int i = 0; i < n; i++){
+        integral += dx*f1(a + i*dx + dx);
+    }
+
+    return integral;
 }
 
-// rectangle rule, midpoint
 double quad_rect_mid(Func1vFp f1, double a, double b, int n) {
-	double dx = interval_size(a, b, n);
-	return quad_rect(f1, a, b, a + dx / 2, dx, n);
+    double dx = (b - a)/(double)n;
+    double integral = 0;
+
+    for(int i = 0; i < n; i++){
+        integral += dx*f1(a + i*dx + 0.5*dx);
+    }
+
+    return integral;
 }
 
-// trapezoidal rule
 double quad_trap(Func1vFp func, double a, double b, int n) {
-	double dx = interval_size(a, b, n);
-	double integral = 0.0;
-	double c = a;
+    double dx = (b - a)/(double)n;
+    double integral = 0;
 
-	for(int i = 0; i < n; i++){
-		integral +=  (func(c + i*dx) + func(c + (i+1)*dx));
-	}
+    for(int i = 0; i < n; i++){
+        integral += 0.5*dx*(func(a + i*dx) + func(a + (i + 1)*dx));
+    }
 
-	return (dx / 2) *integral;
+    return integral;
 }
 
-
-// Simpson's rule
 double quad_simpson(Func1vFp f, double a, double b, int n) {
-	double dx = interval_size(a, b, n);
-	double integral = 0.0;
-	double c = a + dx / 2;
+    double dx = (b - a)/(double)n;
 
-	for (int i = 0; i < n; i++){
-		integral += (f(a + i * dx) + 4*f(c + i*dx) + f(a + (i + 1)*dx));
-	}
+    double sum_i = 0;
+    double sum_t = 0;
 
-	return (dx / 6) * integral;
+    for(int i = 1; i <= n; i++){
+        sum_t += f(a + i*dx - dx/2.0f);
+        if(i < n)
+            sum_i += f(a + i*dx);
+    }
+
+    return dx/6.0f*(f(a) + f(b) + 2*sum_i + 4*sum_t);
 }
 
 // pointer to quadrature function
