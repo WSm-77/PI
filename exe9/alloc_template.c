@@ -6,7 +6,7 @@
 #define TAB_SIZE  1000
 #define BUF_SIZE  1000
 
-#define TEST 1
+#define TEST 0
 
 // 1
 ////////////////////////////////////////////////////////////
@@ -60,9 +60,10 @@ int char_to_int(char ch){
 }
 
 int read_ints_from_line(int *chPtr, int *intBuf) {
-	if (TEST){
+#if TEST
 		printf("read_ints_from_line (start)\n\n");
-	}
+#endif
+
 	int number = 0;
 	int numbersCnt = 0;
 	int correction = 1;
@@ -72,7 +73,7 @@ int read_ints_from_line(int *chPtr, int *intBuf) {
 			correction = -1;
 		}
 		else if (' ' == ch){
-			*intBuf = number;
+			*intBuf = number * correction;
 			intBuf++;
 			numbersCnt++;
 			number = 0;
@@ -88,23 +89,25 @@ int read_ints_from_line(int *chPtr, int *intBuf) {
 
 	*intBuf = number * correction;
 
-	if (TEST){
-		printf("read_ints_from_line (end)\n\n");
-	}
+#if TEST
+	printf("read_ints_from_line (end)\n\n");
+#endif
 
 	*chPtr = ch;
 
-	if (TEST && EOF == ch){
+#if TEST
+	if (EOF == ch)
 		printf("EOF\n");
-	}
+#endif
 
 	return numbersCnt + 1;
 }
 
 int read_int_lines_cont(int* ptrArray[]) {
-	if (TEST){
-		printf("read_int_lines_cont (start)\n\n");
-	}
+
+#if TEST
+	printf("read_int_lines_cont (start)\n\n");
+#endif
 
 	int linesCnt = 0;
 	int ch;
@@ -115,9 +118,9 @@ int read_int_lines_cont(int* ptrArray[]) {
 		ptrArray[linesCnt] = nextPtrInPtrArray;
 	} while(ch != EOF);
 
-	if (TEST){
+#if TEST
 		printf("\nread_int_lines_cont (end)\n\n");
-	}
+#endif
 
 	return linesCnt;
 }
@@ -191,29 +194,29 @@ int read_int_lines(line_type linesArray[]) {
 	int ch;
 	int *valuesPtr;
 	int sum;
-	while(1) {
+	while (1) {
 		numbersInLineCnt = read_ints_from_line(&ch, values);
 
 		if (EOF == ch){
 			break;
 		}
 
-		if (TEST){
-			for (int i = 0; i < numbersInLineCnt; i++) 
-				printf("%d ", values[i]);
-			printf("\n");
-		}
+#if TEST
+		for (int i = 0; i < numbersInLineCnt; i++)
+			printf("%d ", values[i]);
+		printf("\n");
+#endif
 
 		sum = sum_function(values, numbersInLineCnt);
 		valuesPtr = (int *)malloc(numbersInLineCnt * sizeof(int));
 		memcpy(valuesPtr, values, numbersInLineCnt * sizeof(int));
 
-		if (TEST){
-			printf("\nvaluesPtr:\n\n");
-			for (int i = 0; i < numbersInLineCnt; i++) 
-				printf("%d ", valuesPtr[i]);
-			printf("\n");
-		}
+#if TEST
+		printf("\nvaluesPtr:\n\n");
+		for (int i = 0; i < numbersInLineCnt; i++)
+			printf("%d ", valuesPtr[i]);
+		printf("\n");
+#endif
 
 		linesArray[linesCnt] = (line_type){valuesPtr, numbersInLineCnt, (double)(sum / numbersInLineCnt)};
 		linesCnt++;
@@ -278,7 +281,7 @@ int cmp_triplets(const void* t1, const void* t2) {
 	int c2 = ((triplet *)t2)->c;
 
 	return c1 < c2 ? -1 : 1;
-	
+
 }
 
 void make_CSR(triplet* tripletArray, int nTriplets, int rows, int* V, int* C, int* R) {
@@ -292,13 +295,12 @@ void make_CSR(triplet* tripletArray, int nTriplets, int rows, int* V, int* C, in
 	printf("\n");
 #endif
 
-	int currentRow = 0;
 	int currentTriplet = 0;
 	int prevNumOfTriplets = 0;
-	while (tripletArray[currentTriplet].r < rows - 1){
-		while (currentRow == tripletArray[currentTriplet].r){
+	for(int currentRow = 0; currentRow <= rows; currentRow++){
+		while (currentTriplet < nTriplets && currentRow == tripletArray[currentTriplet].r){
 #if TEST
-	printf("Current triplet: val - %d, row - %d, coll - %d\n", 
+	printf("Current triplet: val - %d, row - %d, coll - %d\n",
 	       tripletArray[currentTriplet].v, tripletArray[currentTriplet].r, tripletArray[currentTriplet].c);
 #endif
 			V[currentTriplet] = tripletArray[currentTriplet].v;
@@ -307,30 +309,19 @@ void make_CSR(triplet* tripletArray, int nTriplets, int rows, int* V, int* C, in
 		}
 
 #if TEST
-	printf("\nCurrent row: %d, triplet row: %d\n", currentRow, tripletArray[currentTriplet].r);
+	printf("\nCurrent row %d:\n", currentRow);
 #endif
-		for (int row = currentRow; row < tripletArray[currentTriplet].r; row++){
-			R[row] = prevNumOfTriplets;
-		}
+		R[currentRow] = prevNumOfTriplets;
 		prevNumOfTriplets = currentTriplet;
-		currentRow = tripletArray[currentTriplet].r;
 #if TEST
 	printf("\ntriplet values after updating R vector:\n");
-	for (int i = 0; i < currentRow; i++){
-		printf("Current triplet: val - %d, coll - %d, row - %d\n", 
+	for (int i = 0; i <= currentRow; i++){
+		printf("Current triplet: val - %d, coll - %d, row - %d\n",
 		tripletArray[i].v, tripletArray[i].c, R[i]);
 	}
 	printf("\n");
 #endif
 	}
-
-	R[rows - 1] = currentTriplet;
-	while (currentTriplet < nTriplets){
-		V[currentTriplet] = tripletArray[currentTriplet].v;
-		C[currentTriplet] = tripletArray[currentTriplet].c;
-		currentTriplet++;
-	}
-	R[rows] = nTriplets;
 }
 
 void multiply_by_vector(int rows, const int* V, const int* C, const int* R,
