@@ -3,8 +3,6 @@
 #include <limits.h>
 #include <string.h>
 
-#define TEST 0
-
 // list node
 typedef struct Node {
 	int *data;
@@ -24,15 +22,6 @@ typedef struct iterator {
 	struct Node* node_ptr; // pointer to the node
 	size_t position; // position of the element within the node
 } iterator;
-
-void print_node(Node *ptr){
-	for (int i = 0; i < ptr->size; i++){
-		printf("%d ", ptr->data[i]);
-	}
-	printf("\n");
-}
-
-void dumpList(const List *list);
 
 // forward initialization
 iterator begin(List* list) {
@@ -85,11 +74,7 @@ void free_node(Node **node) {
 
 // push front
 void push_front(List *list, int *data, size_t size) {
-	Node *newNode = (Node *)safe_malloc(sizeof(Node));
-	newNode->data = data;
-	newNode->size = size;
-	newNode->next = list->head;
-	newNode->prev = NULL;
+	Node *newNode = create_node(data, size, list->head, NULL);
 	
 	// new element is first element in the list
 	if (NULL == list->head){
@@ -104,11 +89,7 @@ void push_front(List *list, int *data, size_t size) {
 
 // append element to the list
 void push_back(List *list, int *data, size_t size) {
-	Node *newNode = (Node *)safe_malloc(sizeof(Node));
-	newNode->data = data;
-	newNode->size = size;
-	newNode->next = NULL;
-	newNode->prev = list->tail;
+	Node *newNode = create_node(data, size, NULL, list->tail);
 	
 	// new element is first element in the list
 	if (NULL == list->head){
@@ -171,10 +152,10 @@ void skip_forward(iterator* itr, size_t n) {
 		itr->node_ptr = itr->node_ptr->next;
 		itr->position = 0;
 
-		// if (NULL == itr->node_ptr){
-		// 	printf("fatal error, index out of range!!!");
-		// 	exit(1);
-		// }
+		if (NULL == itr->node_ptr){
+			printf("fatal error, index out of range!!!");
+			exit(1);
+		}
 	}
 	itr->position += n;
 }
@@ -194,10 +175,10 @@ void skip_backward(iterator* itr, size_t n) {
 		itr->node_ptr = itr->node_ptr->prev;
 		itr->position = itr->node_ptr->size;
 
-		// if (NULL == itr->node_ptr){
-		// 	printf("fatal error, index out of range!!!");
-		// 	exit(1);
-		// }
+		if (NULL == itr->node_ptr){
+			printf("fatal error, index out of range!!!");
+			exit(1);
+		}
 	}
 
 	itr->position -= n;
@@ -207,13 +188,6 @@ void skip_backward(iterator* itr, size_t n) {
 int get_backward(List *list, size_t n) {
 	iterator itr = end(list);
 	skip_backward(&itr, n);
-
-#if TEST
-	printf("\n\n######## GET BACKWARD ########\n\n");
-	print_node(itr.node_ptr);
-	printf("%zu-th element from the end: %d", n, (itr.node_ptr->data)[itr.position]);
-	printf("\n");
-#endif
 
 	return (itr.node_ptr->data)[itr.position];
 }
@@ -255,7 +229,7 @@ void remove_at(List *list, size_t n) {
 		itr.node_ptr->data[i] = itr.node_ptr->data[i + 1];
 	}
 
-	itr.node_ptr->data = safe_realloc(itr.node_ptr->data, itr.node_ptr->size);
+	itr.node_ptr->data = safe_realloc(itr.node_ptr->data, (itr.node_ptr->size)*sizeof(int));
 }
 
 size_t digits(int n) {
@@ -329,35 +303,20 @@ void insert_in_order(List *list, int value) {
 	else if (NULL == ptr->prev){
 		int *data = (int *)safe_malloc(sizeof(int) * 1);
 		data[0] = value;
-		Node *newNode = (Node *)safe_malloc(sizeof(Node));
-		newNode->data = data;
-		newNode->size = 1;
-		newNode->prev = NULL;
-		newNode->next = list->head;
-		list->head->prev = newNode;
-		list->head = newNode;
+		push_front(list, data, 1);
 	}
 	// if doesn't exist node that contains numbers with "digs" digits
 	else if (digits(ptr->prev->data[0]) != digs){
 		int *data = (int *)safe_malloc(sizeof(int) * 1);
 		data[0] = value;
-		Node *newNode = (Node *)safe_malloc(sizeof(Node));
-		newNode->data = data;
-		newNode->size = 1;
-		newNode->next = ptr->next;
-		newNode->prev = ptr;
-		ptr->next->prev = newNode;
-		ptr->next = newNode;
+		Node *newNode = create_node(data, 1, ptr, ptr->prev);
+
+		newNode->next->prev = newNode;
+		newNode->prev->next = newNode;
 	}
 	else {
 		add_value_to_node(ptr->prev, value);
 	}
-
-#if TEST
-	printf("\n\n######## INSERT IN ORDER ########\n\n");
-	dumpList(list);
-	printf("\n");
-#endif
 }
 
 // -------------------------------------------------------------
